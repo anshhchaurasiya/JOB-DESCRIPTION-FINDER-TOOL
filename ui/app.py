@@ -59,7 +59,11 @@ analyses_json_path = PROCESSED_DATA_DIR / "analyses.json"
 
 col1, col2, col3 = st.columns(3)
 
-raw_jobs_df = pd.read_csv(RAW_DATA_DIR / "jobs.csv") if (RAW_DATA_DIR / "jobs.csv").exists() else pd.DataFrame()
+raw_jobs_df = (
+    pd.read_csv(RAW_DATA_DIR / "jobs.csv", on_bad_lines='skip') 
+    if (RAW_DATA_DIR / "jobs.csv").exists() 
+    else pd.DataFrame()
+)
 analyzed_df = pd.read_json(analyses_json_path) if analyses_json_path.exists() else pd.DataFrame()
 
 col1.metric("Total Jobs Collected", len(raw_jobs_df))
