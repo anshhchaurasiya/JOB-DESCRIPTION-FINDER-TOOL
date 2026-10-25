@@ -3,6 +3,11 @@ from src.scraper import JobScraperService
 from src.extractor import JDExtractorService
 from src.aggregator import MarketAggregator
 
+"""
+python main.py --search "Gen AI Engineer" --location "USA" --limit 1 
+ 
+"""
+
 def main():
     parser = argparse.ArgumentParser(description="Automated JD Analysis Tool for Full-Stack AI Engineer Roles")
     parser.add_argument("--search", type=str, default="Full-Stack AI Engineer", help="Job search query keyword")
@@ -10,17 +15,19 @@ def main():
     parser.add_argument("--limit", type=int, default=15, help="Number of jobs wanted per site")
     parser.add_argument("--extract", action="store_true", help="Run LLM extraction on collected jobs")
     parser.add_argument("--report", action="store_true", help="Generate market intelligence report & exports")
+    parser.add_argument("--hours",type=int,default=48, help="Filter jobs posted within the last N hours (default: 48)")
 
     args = parser.parse_args()
 
     print(f"\n[🚀] Starting Job Analysis Pipeline...")
     print(f" -> Query: {args.search}")
     print(f" -> Location: {args.location}")
-    print(f" -> Limit per board: {args.limit}\n")
+    print(f" -> Limit per board: {args.limit}")
+    print(f" -> Hours Old: {args.hours}\n")
 
     # 1. Scrape Jobs
     scraper = JobScraperService()
-    jobs = scraper.fetch_jobs(search_term=args.search, location=args.location, results_wanted=args.limit)
+    jobs = scraper.fetch_jobs(search_term=args.search, location=args.location, results_wanted=args.limit, hours_old=args.hours)
     print(f"[+] Total jobs fetched/cached in DB: {len(jobs)}")
 
     # 2. Extract Structured Data via LLM if requested

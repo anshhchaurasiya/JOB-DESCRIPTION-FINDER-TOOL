@@ -44,50 +44,50 @@ if run_button:
         scraper = JobScraperService()
         jobs = scraper.fetch_jobs(search_term=search_term, location=location, results_wanted=results_limit)
         
-        extractor = JDExtractorService()
-        for job in jobs:
-            extractor.extract_job(job)
+#         extractor = JDExtractorService()
+#         for job in jobs:
+#             extractor.extract_job(job)
             
-        aggregator = MarketAggregator()
-        aggregator.generate_market_report()
-        st.success("Pipeline executed successfully!")
+#         aggregator = MarketAggregator()
+#         aggregator.generate_market_report()
+#         st.success("Pipeline executed successfully!")
 
-# --- Load Processed Artifacts if Available ---
-report_md_path = PROCESSED_DATA_DIR / "market_report.md"
-skills_csv_path = PROCESSED_DATA_DIR / "skill_demand.csv"
-analyses_json_path = PROCESSED_DATA_DIR / "analyses.json"
+# # --- Load Processed Artifacts if Available ---
+# report_md_path = PROCESSED_DATA_DIR / "market_report.md"
+# skills_csv_path = PROCESSED_DATA_DIR / "skill_demand.csv"
+# analyses_json_path = PROCESSED_DATA_DIR / "analyses.json"
 
-col1, col2, col3 = st.columns(3)
+# col1, col2, col3 = st.columns(3)
 
-raw_jobs_df = (
-    pd.read_csv(RAW_DATA_DIR / "jobs.csv", on_bad_lines='skip') 
-    if (RAW_DATA_DIR / "jobs.csv").exists() 
-    else pd.DataFrame()
-)
-analyzed_df = pd.read_json(analyses_json_path) if analyses_json_path.exists() else pd.DataFrame()
+# raw_jobs_df = (
+#     pd.read_csv(RAW_DATA_DIR / "jobs.csv", on_bad_lines='skip') 
+#     if (RAW_DATA_DIR / "jobs.csv").exists() 
+#     else pd.DataFrame()
+# )
+# analyzed_df = pd.read_json(analyses_json_path) if analyses_json_path.exists() else pd.DataFrame()
 
-col1.metric("Total Jobs Collected", len(raw_jobs_df))
-col2.metric("Successfully Analyzed", len(analyzed_df) if not analyzed_df.empty else 0)
-col3.metric("Target Salary", "10+ LPA")
+# col1.metric("Total Jobs Collected", len(raw_jobs_df))
+# col2.metric("Successfully Analyzed", len(analyzed_df) if not analyzed_df.empty else 0)
+# col3.metric("Target Salary", "10+ LPA")
 
-st.markdown("---")
+# st.markdown("---")
 
-if skills_csv_path.exists():
-    st.subheader("🔥 Top Demanded Technical Skills")
-    df_skills = pd.read_csv(skills_csv_path)
-    st.bar_chart(df_skills.set_index("skill")["demand_percentage"])
-    st.dataframe(df_skills, width="stretch")
+# if skills_csv_path.exists():
+#     st.subheader("🔥 Top Demanded Technical Skills")
+#     df_skills = pd.read_csv(skills_csv_path)
+#     st.bar_chart(df_skills.set_index("skill")["demand_percentage"])
+#     st.dataframe(df_skills, width="stretch")
 
-if report_md_path.exists():
-    st.markdown("---")
-    st.subheader("📋 Generated Market Intelligence Report")
-    with open(report_md_path, "r", encoding="utf-8") as f:
-        md_text = f.read()
-    st.markdown(md_text)
+# if report_md_path.exists():
+#     st.markdown("---")
+#     st.subheader("📋 Generated Market Intelligence Report")
+#     with open(report_md_path, "r", encoding="utf-8") as f:
+#         md_text = f.read()
+#     st.markdown(md_text)
 
-    st.download_button(
-        label="📥 Download Markdown Report",
-        data=md_text,
-        file_name="market_report.md",
-        mime="text/markdown"
-    )
+#     st.download_button(
+#         label="📥 Download Markdown Report",
+#         data=md_text,
+#         file_name="market_report.md",
+#         mime="text/markdown"
+#     )

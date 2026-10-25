@@ -3,18 +3,45 @@ from pydantic import BaseModel, Field, field_validator
 
 class JobRecord(BaseModel):
     job_id: str
-    title: str
-    company: str
+    id: Optional[str] = None
+    site: Optional[str] = None
+    job_url: Optional[str] = None
+    job_url_direct: Optional[str] = None
+    title: Optional[str] = None
+    company: Optional[str] = None
     location: Optional[str] = None
-    job_url: str
-    source: str
-    raw_description: Optional[str] = None
     date_posted: Optional[str] = None
-    salary_string: Optional[str] = None
-    employment_type: Optional[str] = None
-    experience_requirements: Optional[str] = None
+    job_type: Optional[str] = None
+    salary_source: Optional[str] = None
+    interval: Optional[str] = None
+    min_amount: Optional[float] = None
+    max_amount: Optional[float] = None
+    currency: Optional[str] = None
+    is_remote: Optional[bool] = None
+    job_level: Optional[str] = None
+    job_function: Optional[str] = None
+    listing_type: Optional[str] = None
+    emails: Optional[str] = None
+    description: Optional[str] = None
+    company_industry: Optional[str] = None
+    company_url: Optional[str] = None
+    company_logo: Optional[str] = None
+    company_url_direct: Optional[str] = None
+    company_addresses: Optional[str] = None
+    company_num_employees: Optional[str] = None
+    company_revenue: Optional[str] = None
+    company_description: Optional[str] = None
+    skills: Optional[str] = None
+    experience_range: Optional[str] = None
+    company_rating: Optional[float] = None
+    company_reviews_count: Optional[int] = None
+    vacancy_count: Optional[int] = None
+    work_from_home_type: Optional[str] = None
     collection_timestamp: str
-    source_job_id: Optional[str] = None
+    @property
+    def raw_description(self) -> Optional[str]:
+            """Backward-compatibility alias for description."""
+            return self.description
 
 class EvidenceItem(BaseModel):
     technology: str
@@ -67,7 +94,6 @@ class ExtractedJD(BaseModel):
     @classmethod
     def convert_evidence(cls, value: Any) -> Any:
         if isinstance(value, dict):
-            # Convert dict {"Python": "snippet"} -> [{"technology": "Python", "snippet": "snippet"}]
             return [{"technology": str(k), "snippet": str(v)} for k, v in value.items()]
         elif isinstance(value, list):
             normalized = []

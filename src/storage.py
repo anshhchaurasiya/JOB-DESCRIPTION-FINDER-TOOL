@@ -17,23 +17,46 @@ class StorageManager:
         return conn
 
     def _init_db(self):
-        """Initializes SQLite tables for raw jobs and extractions."""
+        """Initializes SQLite tables for raw jobs covering all 34 columns and extractions."""
         with self._get_connection() as conn:
             conn.execute("""
                 CREATE TABLE IF NOT EXISTS jobs (
                     job_id TEXT PRIMARY KEY,
+                    id TEXT,
+                    site TEXT,
+                    job_url TEXT,
+                    job_url_direct TEXT,
                     title TEXT,
                     company TEXT,
                     location TEXT,
-                    job_url TEXT,
-                    source TEXT,
-                    raw_description TEXT,
                     date_posted TEXT,
-                    salary_string TEXT,
-                    employment_type TEXT,
-                    experience_requirements TEXT,
-                    collection_timestamp TEXT,
-                    source_job_id TEXT
+                    job_type TEXT,
+                    salary_source TEXT,
+                    interval TEXT,
+                    min_amount REAL,
+                    max_amount REAL,
+                    currency TEXT,
+                    is_remote INTEGER,
+                    job_level TEXT,
+                    job_function TEXT,
+                    listing_type TEXT,
+                    emails TEXT,
+                    description TEXT,
+                    company_industry TEXT,
+                    company_url TEXT,
+                    company_logo TEXT,
+                    company_url_direct TEXT,
+                    company_addresses TEXT,
+                    company_num_employees TEXT,
+                    company_revenue TEXT,
+                    company_description TEXT,
+                    skills TEXT,
+                    experience_range TEXT,
+                    company_rating REAL,
+                    company_reviews_count INTEGER,
+                    vacancy_count INTEGER,
+                    work_from_home_type TEXT,
+                    collection_timestamp TEXT
                 )
             """)
             conn.execute("""
@@ -56,32 +79,56 @@ class StorageManager:
                 try:
                     conn.execute("""
                         INSERT OR IGNORE INTO jobs (
-                            job_id, title, company, location, job_url, source, 
-                            raw_description, date_posted, salary_string, 
-                            employment_type, experience_requirements, 
-                            collection_timestamp, source_job_id
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                            job_id, id, site, job_url, job_url_direct, title, company, location, 
+                            date_posted, job_type, salary_source, interval, min_amount, max_amount, 
+                            currency, is_remote, job_level, job_function, listing_type, emails, 
+                            description, company_industry, company_url, company_logo, company_url_direct, 
+                            company_addresses, company_num_employees, company_revenue, company_description, 
+                            skills, experience_range, company_rating, company_reviews_count, vacancy_count, 
+                            work_from_home_type, collection_timestamp
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """, (
-                        job.job_id, job.title, job.company, job.location, job.job_url, job.source,
-                        job.raw_description, job.date_posted, job.salary_string,
-                        job.employment_type, job.experience_requirements,
-                        job.collection_timestamp, job.source_job_id
+                        job.job_id, job.id, job.site, job.job_url, job.job_url_direct, job.title, job.company, job.location,
+                        job.date_posted, job.job_type, job.salary_source, job.interval, job.min_amount, job.max_amount,
+                        job.currency, int(job.is_remote) if job.is_remote is not None else None, job.job_level, job.job_function,
+                        job.listing_type, job.emails, job.description, job.company_industry, job.company_url, job.company_logo,
+                        job.company_url_direct, job.company_addresses, job.company_num_employees, job.company_revenue,
+                        job.company_description, job.skills, job.experience_range, job.company_rating, job.company_reviews_count,
+                        job.vacancy_count, job.work_from_home_type, job.collection_timestamp
                     ))
                     saved_count += 1
                 except Exception as e:
                     print(f"Error saving job {job.job_id}: {e}")
             conn.commit()
         
-        # Also export raw dataset snapshot to CSV
-        self.export_raw_csv()
+        # Export snapshots to CSV and clean JSON
+        self.export_raw_files(jobs)
         return saved_count
 
-    def export_raw_csv(self):
-        """Exports all raw jobs to data/raw/jobs.csv"""
+    def export_raw_files(self, jobs: List[JobRecord]):
+        """Exports raw dataset snapshots to CSV and clean JSON with unescaped URLs."""
+        RAW_DATA_DIR.mkdir(parents=True, exist_ok=True)
+        
         with self._get_connection() as conn:
-            df = pd.read_sql_query("SELECT * FROM jobs", conn)
+            df = pd.read_sql_query("SELECT * FROM jobs ORDER BY collection_timestamp DESC", conn)
+        
+        # Export CSV directly
         df.to_csv(RAW_DATA_DIR / "jobs.csv", index=False)
-        df.to_json(RAW_DATA_DIR / "jobs.json", orient="records", indent=2)
+        
+            # Export all database records to JSON
+        dicts = (
+            df.astype(object)
+            .where(pd.notna(df), None)
+            .to_dict(orient="records")
+    )
+
+        with open(RAW_DATA_DIR / "jobs.json", "w", encoding="utf-8") as f:
+            json.dump(dicts, f, indent=2, ensure_ascii=False)
+        
+        # # Export JSON directly with ensure_ascii=False for clean URLs
+        # dicts = [job.model_dump() for job in jobs]
+        # with open(RAW_DATA_DIR / "jobs.json", "w", encoding="utf-8") as f:
+        #     json.dump(dicts, f, indent=2, ensure_ascii=False)
 
     def get_all_jobs(self) -> List[Dict[str, Any]]:
         with self._get_connection() as conn:
