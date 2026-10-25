@@ -17,3 +17,6 @@ __pycache__/
 # Generated job data and reports
 data/raw/
 data/processed/
+
+# vscode
+.vscode/
