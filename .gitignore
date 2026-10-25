@@ -1,0 +1,19 @@
+# Python virtual environments
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Environment variables and secrets
+.env
+.env.*
+!.env.example
+
+# Local databases
+*.sqlite
+*.sqlite3
+*.db
+
+# Generated job data and reports
+data/raw/
+data/processed/

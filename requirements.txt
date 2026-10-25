@@ -1,0 +1,7 @@
+python-jobspy==1.1.82
+google-genai>=1.0.0
+pydantic>=2.7.0
+pandas>=2.0.0
+streamlit>=1.30.0
+python-dotenv==1.0.1
+pytest>=8.0.0
